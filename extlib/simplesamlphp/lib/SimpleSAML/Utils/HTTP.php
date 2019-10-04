@@ -801,8 +801,9 @@ class HTTP
             } else { // no base URL specified for app, just use the current URL
                 $protocol = 'http';
                 $protocol .= (self::getServerHTTPS()) ? 's' : '';
-                $hostname = self::getServerHost();
-                $port = self::getServerPort();
+		global $CFG;
+		$hostname = parse_url($CFG->wwwroot, PHP_URL_HOST);
+		$port = '';
             }
             return $protocol.'://'.$hostname.$port.$_SERVER['REQUEST_URI'];
         }
