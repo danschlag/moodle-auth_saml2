@@ -110,12 +110,14 @@ if ($ADMIN->fulltree) {
         'urn:oasis:names:tc:SAML:2.0:nameid-format:persistent',
         'urn:oasis:names:tc:SAML:2.0:nameid-format:transient',
     ];
-    $settings->add(new admin_setting_configselect(
+    $nameidpolicy = new admin_setting_configselect(
         'auth_saml2/nameidpolicy',
         get_string('nameidpolicy', 'auth_saml2'),
         get_string('nameidpolicy_help', 'auth_saml2'),
         'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified',
-        array_combine($nameidlist, $nameidlist)));
+        array_combine($nameidlist, $nameidlist));
+    $nameidpolicy->set_updatedcallback('auth_saml2_update_sp_metadata');
+    $settings->add($nameidpolicy);
 
     // Add NameID as attribute.
     $settings->add(new admin_setting_configselect(
@@ -192,7 +194,7 @@ if ($ADMIN->fulltree) {
             get_string('anyauth_help', 'auth_saml2'),
             0, $yesno));
 
-    // Simplify attributes
+    // Simplify attributes.
     $settings->add(new admin_setting_configselect(
             'auth_saml2/attrsimple',
             get_string('attrsimple', 'auth_saml2'),
@@ -234,7 +236,7 @@ if ($ADMIN->fulltree) {
             get_string('autocreate_help', 'auth_saml2'),
             0, $yesno));
 
-    // Attribute name that contains groups
+    // Attribute name that contains groups.
     $settings->add(new admin_setting_configtext(
             'auth_saml2/groupattr',
             get_string('groupattr', 'auth_saml2'),
@@ -242,7 +244,7 @@ if ($ADMIN->fulltree) {
             '',
             PARAM_TEXT));
 
-    // Restricted groups
+    // Restricted groups.
     $settings->add(new admin_setting_configtext(
             'auth_saml2/restricted_groups',
             get_string('restricted_groups', 'auth_saml2'),
@@ -250,7 +252,7 @@ if ($ADMIN->fulltree) {
             'employee',
             PARAM_TEXT));
 
-    // Allowed groups
+    // Allowed groups.
     $settings->add(new admin_setting_configtext(
             'auth_saml2/allowed_groups',
             get_string('allowed_groups', 'auth_saml2'),
@@ -299,6 +301,43 @@ if ($ADMIN->fulltree) {
     $help = get_string('auth_updatelocal_expl', 'auth');
     $help .= get_string('auth_fieldlock_expl', 'auth');
     $help .= get_string('auth_updateremote_expl', 'auth');
+
+    // User block and redirect feature setting section.
+    $settings->add(new admin_setting_heading('auth_saml2/blockredirectheading', get_string('blockredirectheading', 'auth_saml2'),
+        new lang_string('auth_saml2blockredirectdescription', 'auth_saml2')));
+
+    // Flagged login response options.
+    $flaggedloginresponseoptions = [
+        saml2_settings::OPTION_FLAGGED_LOGIN_MESSAGE => get_string('flaggedresponsetypemessage', 'auth_saml2'),
+        saml2_settings::OPTION_FLAGGED_LOGIN_REDIRECT => get_string('flaggedresponsetyperedirect', 'auth_saml2')
+    ];
+
+    // Flagged login response options selector.
+    $settings->add(new admin_setting_configselect(
+        'auth_saml2/flagresponsetype',
+        get_string('flagresponsetype', 'auth_saml2'),
+        get_string('flagresponsetype_help', 'auth_saml2'),
+        saml2_settings::OPTION_FLAGGED_LOGIN_REDIRECT,
+        $flaggedloginresponseoptions));
+
+
+    // Set the http OR https fully qualified scheme domain name redirect destination for flagged accounts.
+    $settings->add(new admin_setting_configtext(
+        'auth_saml2/flagredirecturl',
+        get_string('flagredirecturl', 'auth_saml2'),
+        get_string('flagredirecturl_help', 'auth_saml2'),
+        '',
+        PARAM_URL));
+
+    // Set the displayed message for flagged accounts.
+    $settings->add(new admin_setting_configtextarea(
+        'auth_saml2/flagmessage',
+        get_string('flagmessage', 'auth_saml2'),
+        get_string('flagmessage_help', 'auth_saml2'),
+        get_string('flagmessage_default', 'auth_saml2'),
+        PARAM_TEXT,
+        50,
+        3));
 
     if (moodle_major_version() < '3.3') {
         auth_saml2_display_auth_lock_options($settings, $authplugin->authtype, $authplugin->userfields, $help, true, true,

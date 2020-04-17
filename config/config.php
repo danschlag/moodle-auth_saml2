@@ -76,7 +76,9 @@ $config = array(
 
     'enable.http_post' => false,
 
-    'signature.algorithm' => !empty($saml2auth->config->signaturealgorithm) ? $saml2auth->config->signaturealgorithm : ssl_algorithms::get_default_saml_signature_algorithm(),
+    'signature.algorithm' => !empty($saml2auth->config->signaturealgorithm)
+        ? $saml2auth->config->signaturealgorithm
+        : ssl_algorithms::get_default_saml_signature_algorithm(),
 
     'metadata.sign.enable'          => $saml2auth->config->spmetadatasign ? true : false,
     'metadata.sign.certificate'     => $saml2auth->certcrt,
@@ -88,12 +90,7 @@ $config = array(
 
     'proxy' => null, // TODO inherit from moodle conf see http://moodle.local/admin/settings.php?section=http for more.
 
-    'authproc.sp' => array(
-        50 => array(
-            'class' => 'core:AttributeMap',
-            'oid2name',
-        ),
-    ),
+    'authproc.sp' => auth_plugin_saml2::saml2_authproc_filters_hook(),
 
     // TODO setting for signature.algorithm (ADFS 3 requires http://www.w3.org/2001/04/xmldsig-more#rsa-sha256)
     // TODO setting for redirect.sign
